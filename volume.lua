@@ -15,8 +15,8 @@ local timer = timer
 -- widgets.volume
 local volume = { mt = {} }
 
-function get_volume_text()
-    local fd = io.popen("amixer sget Master")
+function get_volume_text(c)
+    local fd = io.popen("amixer sget " .. c)
     local status = fd:read("*all")
     fd:close()
     
@@ -32,46 +32,51 @@ function get_volume_text()
     return volume
 end
 
-function raise_volume(w)
-    awful.util.spawn("amixer -q set Master 1+ unmute")
+function raise_volume(w, c)
+    awful.util.spawn("amixer -q set " .. c .. " 1+ unmute")
     if w ~= nil then
-        w:set_text(get_volume_text())
+        w:set_text(get_volume_text(c))
     end
 end
 
-function lower_volume(w)
-    awful.util.spawn("amixer -q set Master 1- unmute")
+function lower_volume(w, c)
+    awful.util.spawn("amixer -q set " .. c .. " 1- unmute")
     if w ~= nil then
-        w:set_text(get_volume_text())
+        w:set_text(get_volume_text(c))
     end
 end
 
-function toggle_mute(w)
-    awful.util.spawn("amixer -q set Master toggle")
+function toggle_mute(w, c)
+    awful.util.spawn("amixer -q set " .. c .. " toggle")
     if w ~= nil then
-        w:set_text(get_volume_text())
+        w:set_text(get_volume_text(c))
     end
 end
 
-function volume.new(interval)
+function volume.new(args)
+    local args = args or {}
+    local timeout = args.timeout or 31
+    local terminal = args.terminal or "x-terminal-emulator"
+    local channel = args.channel or "Master"
+
     local w = textbox()
 
     w:buttons(awful.util.table.join(
         awful.button({ }, 1, function()
-            awful.util.spawn("x-terminal-emulator -e alsamixer")
+            awful.util.spawn(terminal .. " -e alsamixer")
         end)
     ))
 
-    local t = timer({ timeout = 30 })
-    t:connect_signal("timeout", function () w:set_text(get_volume_text()) end)
+    local t = timer({ timeout = timeout })
+    t:connect_signal("timeout", function () w:set_text(get_volume_text(channel)) end)
     t:start()
     t:emit_signal("timeout")
 
     return {
         widget = w,
-        raise = function () raise_volume(w) end,
-        lower = function () lower_volume(w) end,
-        mute = function () toggle_mute(w) end
+        raise = function () raise_volume(w, channel) end,
+        lower = function () lower_volume(w, channel) end,
+        mute  = function () toggle_mute(w, channel) end
     }
 end
 
