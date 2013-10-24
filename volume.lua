@@ -16,7 +16,7 @@ local timer = timer
 local volume = { mt = {} }
 
 function get_volume_text(c)
-    local fd = io.popen("amixer sget " .. c)
+    local fd = io.popen("amixer -M sget " .. c)
     local status = fd:read("*all")
     fd:close()
     
