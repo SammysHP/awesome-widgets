@@ -19,7 +19,7 @@ function get_volume_text(c)
     local fd = io.popen("amixer -M sget " .. c)
     local status = fd:read("*all")
     fd:close()
-    
+
     local volume = string.match(status, "(%d?%d?%d)%%")
 
     status = string.match(status, "%[(o[^%]]*)%]")

@@ -13,6 +13,7 @@ return
     loadavg = require("widgets.loadavg");
     volume = require("widgets.volume");
     textclock = require("widgets.textclock");
+    smapibat = require("widgets.smapibat");
 }
 
 -- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80
