@@ -24,11 +24,14 @@ function get_volume_text(c)
 
     status = string.match(status, "%[(o[^%]]*)%]")
 
-    if string.find(status, "on", 1, true) then
+    if not status then
+        volume = "♫?"
+    elseif string.find(status, "on", 1, true) then
         volume = "♫" .. volume
     else
         volume = "♫M"
     end
+
     return volume
 end
 
