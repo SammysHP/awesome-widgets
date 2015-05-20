@@ -53,7 +53,7 @@ function get_battery_status(adapter)
     if status == BAT_DISCHARGING then
         indicator = "↓"
         watt = string.format(" %.2f", pow / -1000) .. "W"
-        remaining = string.format(" %dh%dm", rem / 60, rem % 60)
+        remaining = string.format(" %dh%dm", math.floor(rem / 60), math.floor(rem % 60))
     elseif status == BAT_CHARGING then
         indicator = "↑"
     elseif status == BAT_AC then
