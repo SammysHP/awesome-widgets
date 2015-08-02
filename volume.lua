@@ -64,10 +64,20 @@ function volume.new(args)
 
     local w = textbox()
 
+    local ww = {
+        widget = w,
+        raise = function () raise_volume(w, channel) end,
+        lower = function () lower_volume(w, channel) end,
+        mute  = function () toggle_mute(w, channel) end
+    }
+
     w:buttons(awful.util.table.join(
         awful.button({ }, 1, function()
-            awful.util.spawn(terminal .. " -e alsamixer")
-        end)
+                awful.util.spawn(terminal .. " -e alsamixer")
+            end),
+        awful.button({ }, 3, function() ww.mute() end),
+        awful.button({ }, 4, function() ww.raise() end),
+        awful.button({ }, 5, function() ww.lower() end)
     ))
 
     local t = timer({ timeout = timeout })
@@ -75,12 +85,7 @@ function volume.new(args)
     t:start()
     t:emit_signal("timeout")
 
-    return {
-        widget = w,
-        raise = function () raise_volume(w, channel) end,
-        lower = function () lower_volume(w, channel) end,
-        mute  = function () toggle_mute(w, channel) end
-    }
+    return ww
 end
 
 function volume.mt:__call(...)
