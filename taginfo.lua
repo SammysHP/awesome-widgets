@@ -15,9 +15,8 @@ local taginfo = { mt = {} }
 
 function refresh(w)
     return function (tag)
-        local master = awful.tag.getnmaster(tag)
-        local slave = awful.tag.getncol(tag)
-        w:set_text(master .. "/" .. slave .. " ")
+        if not tag then return end
+        w:set_text(tag.master_count .. "/" .. tag.column_count .. " ")
     end
 end
 
@@ -25,10 +24,10 @@ function taginfo.new(screen)
     local w = textbox()
     local callback = refresh(w)
 
-    callback()
+    callback(screen.selected_tag)
 
-    awful.tag.attached_connect_signal(screen, "property::nmaster", callback)
-    awful.tag.attached_connect_signal(screen, "property::ncol", callback)
+    awful.tag.attached_connect_signal(screen, "property::master_count", callback)
+    awful.tag.attached_connect_signal(screen, "property::column_count", callback)
     awful.tag.attached_connect_signal(screen, "property::selected", callback)
 
     return w

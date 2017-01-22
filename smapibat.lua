@@ -6,8 +6,8 @@
 
 local setmetatable = setmetatable
 local textbox = require("wibox.widget.textbox")
+local timer = require("gears.timer")
 local io = io
-local timer = timer
 local string = string
 local math = math
 

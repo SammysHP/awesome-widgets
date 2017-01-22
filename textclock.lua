@@ -1,37 +1,49 @@
 ---------------------------------------------------------------------------
+--- Text clock widget.
+--
 -- @author Julien Danjou &lt;julien@danjou.info&gt;
 -- @copyright 2009 Julien Danjou
--- @release v3.5.2-sammyshp
+-- @classmod wibox.widget.textclock
 ---------------------------------------------------------------------------
 
 local setmetatable = setmetatable
 local os = os
 local textbox = require("wibox.widget.textbox")
-local capi = { timer = timer }
-local naughty = require("naughty")
+local timer = require("gears.timer")
+local DateTime = require("lgi").GLib.DateTime
 
---- Text clock widget.
--- widget.textclock
 local textclock = { mt = {} }
 
+--- This lowers the timeout so that it occurs "correctly". For example, a timeout
+-- of 60 is rounded so that it occurs the next time the clock reads ":00 seconds".
+local function calc_timeout(real_timeout)
+    return real_timeout - os.time() % real_timeout
+end
+
 --- Create a textclock widget. It draws the time it is in a textbox.
--- @param format The time format. Default is " %a %b %d, %H:%M ".
--- @param timeout How often update the time. Default is 60.
--- @param locale The locale of the time format.
--- @return A textbox widget.
+--
+-- @tparam[opt=" %a %b %d, %H:%M "] string format The time format.
+-- @tparam[opt=60] number timeout How often update the time (in seconds).
+-- @treturn table A textbox widget.
+-- @function wibox.widget.textclock
 function textclock.new(format, timeout, locale)
-    local format = format or " %a %b %d, %H:%M "
-    local timeout = timeout or 60
+    format = format or " %a %b %d, %H:%M "
+    timeout = timeout or 60
 
     if locale then
         os.setlocale(locale, "time")
     end
 
     local w = textbox()
-    local timer = capi.timer { timeout = timeout }
-    timer:connect_signal("timeout", function() w:set_markup(os.date(format)) end)
-    timer:start()
-    timer:emit_signal("timeout")
+    local t
+    function w._private.textclock_update_cb()
+        w:set_markup(DateTime.new_now_local():format(format))
+        t.timeout = calc_timeout(timeout)
+        t:again()
+        return true -- Continue the timer
+    end
+    t = timer.weak_start_new(timeout, w._private.textclock_update_cb)
+    t:emit_signal("timeout")
     return w
 end
 

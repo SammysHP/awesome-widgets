@@ -9,7 +9,7 @@ local textbox = require("wibox.widget.textbox")
 local awful = require("awful")
 local io = io
 local string = string
-local timer = timer
+local timer = require("gears.timer")
 
 --- Volume widget.
 -- widgets.volume
@@ -36,21 +36,21 @@ function get_volume_text(c)
 end
 
 function raise_volume(w, c)
-    awful.util.spawn("amixer -q set " .. c .. " 1+ unmute")
+    awful.spawn("amixer -q set " .. c .. " 1+ unmute", false)
     if w ~= nil then
         w:set_text(get_volume_text(c))
     end
 end
 
 function lower_volume(w, c)
-    awful.util.spawn("amixer -q set " .. c .. " 1- unmute")
+    awful.spawn("amixer -q set " .. c .. " 1- unmute", false)
     if w ~= nil then
         w:set_text(get_volume_text(c))
     end
 end
 
 function toggle_mute(w, c)
-    awful.util.spawn("amixer -q set " .. c .. " toggle")
+    awful.spawn("amixer -q set " .. c .. " toggle", false)
     if w ~= nil then
         w:set_text(get_volume_text(c))
     end
@@ -73,7 +73,7 @@ function volume.new(args)
 
     w:buttons(awful.util.table.join(
         awful.button({ }, 1, function()
-                awful.util.spawn(terminal .. " -e alsamixer")
+                awful.spawn(terminal .. " -e alsamixer", false)
             end),
         awful.button({ }, 3, function() ww.mute() end),
         awful.button({ }, 4, function() ww.raise() end),
