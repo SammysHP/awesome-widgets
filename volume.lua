@@ -5,55 +5,50 @@
 ---------------------------------------------------------------------------
 
 local setmetatable = setmetatable
-local textbox = require("wibox.widget.textbox")
+
 local awful = require("awful")
-local io = io
-local string = string
 local timer = require("gears.timer")
+local textbox = require("wibox.widget.textbox")
+local string = string
 
 --- Volume widget.
 -- widgets.volume
 local volume = { mt = {} }
 
-function get_volume_text(c)
-    local fd = io.popen("amixer -M sget " .. c)
-    local status = fd:read("*all")
-    fd:close()
+function update_volume_text(w, c)
+    awful.spawn.easy_async("amixer -M sget " .. c, function (stdout, stderr, reason, exit_code)
+        local status = stdout
+        local volume = string.match(status, "(%d?%d?%d)%%")
 
-    local volume = string.match(status, "(%d?%d?%d)%%")
+        status = string.match(status, "%[(o[^%]]*)%]")
 
-    status = string.match(status, "%[(o[^%]]*)%]")
+        if not status then
+            volume = "♫?"
+        elseif string.find(status, "on", 1, true) then
+            volume = "♫" .. volume
+        else
+            volume = "♫M"
+        end
 
-    if not status then
-        volume = "♫?"
-    elseif string.find(status, "on", 1, true) then
-        volume = "♫" .. volume
-    else
-        volume = "♫M"
-    end
-
-    return volume
+        if w ~= nil then
+            w.text = volume
+        end
+    end)
 end
 
 function raise_volume(w, c)
     awful.spawn("amixer -q set " .. c .. " 1+ unmute", false)
-    if w ~= nil then
-        w:set_text(get_volume_text(c))
-    end
+    update_volume_text(w, c)
 end
 
 function lower_volume(w, c)
     awful.spawn("amixer -q set " .. c .. " 1- unmute", false)
-    if w ~= nil then
-        w:set_text(get_volume_text(c))
-    end
+    update_volume_text(w, c)
 end
 
 function toggle_mute(w, c)
     awful.spawn("amixer -q set " .. c .. " toggle", false)
-    if w ~= nil then
-        w:set_text(get_volume_text(c))
-    end
+    update_volume_text(w, c)
 end
 
 function volume.new(args)
@@ -81,7 +76,7 @@ function volume.new(args)
     ))
 
     local t = timer({ timeout = timeout })
-    t:connect_signal("timeout", function () w:set_text(get_volume_text(channel)) end)
+    t:connect_signal("timeout", function () update_volume_text(w, channel) end)
     t:start()
     t:emit_signal("timeout")
 
